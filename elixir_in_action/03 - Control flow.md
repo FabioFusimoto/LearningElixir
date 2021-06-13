@@ -181,3 +181,83 @@ end
 ```
 
 ## Loops and iterations
+As iterações normalmente são resolvidas por recursão. Não temos um bloco dedicado de `while` ou
+`do ... while`. Erlang tem um tratamento otimizado para recursão através de *tail-call recursion*,
+que significa chamar a função de recursão como a última. Expressões que envolvem uma chamada de
+função não contam como uma *tail-call recursion*, uma vez que o último valor avaliado é o resul-
+tado da expressão e não da função em si. `ListHelpers.sum/1` (da seção de *Conditionals*) é uma 
+ilustração deste caso
+
+TENTAR IMPLEMENTAR AS SEGUINTES FUNÇÕES UTILIZANDO RECURSÃO E PATTERN MATCHING
+- A `list_len/1` function that calculates the length of a list
+- A `range/2` function that takes two integers, from and to, and returns a list of all
+numbers in the given range
+- A `positive/1` function that takes a list and returns another list that contains only
+the positive numbers from the input list
+
+O autor recomenda implementá-las primeiramente como uma recursão normal e depois com uma *tail-
+recursion*.
+
+### Higher-order functions
+Além da recursão clássica, muitas operações repetitivas podem ser resolvidas com *higher-order
+functions*, que nada mais são do que funções que tomam funções como argumentos. `Enum.each/2` é
+um exemplo deste tipo (internamente ela é implementada através de recursão, mas esta fica implí-
+cita neste caso e torna o código mais legível). Algumas funções do módulo `Enum` relevantes:
+
+- `each`: Executa a função para cada elemento passado
+- `map`: O mesmo do Clojure
+- `filter`: Mantém apenas os elementos cuja expressão avalia para `true` (não o truthy values)
+- `reduce(enumerable, initial_acc, fn element, acc -> ... end)`: Para se escrever uma soma de ele-
+mentos de uma lista, pode-se escrever `Enum.reduce([...], 0, &+/2)` (especificamente para o caso da
+soma, há no módulo `Enum` que aplica a soma a um enumerable -> `Enum.sum/1`)
+
+### Comprehensions
+Uma sintaxe alternativa para executar uma expressão e retornar o resultado como uma lista. Mas, ao
+invés de executar para cada elemento, faz-se um produto cartesiano dos elementos fornecidos (como 
+faz o `doseq` em Clojure).
+
+```elixir
+for x <- [1, 2, 3], y <- [1, 2, 3], do: {x, y, x*y}
+
+[
+{1, 1, 1}, {1, 2, 2}, {1, 3, 3},
+{2, 1, 2}, {2, 2, 4}, {2, 3, 6},
+{3, 1, 3}, {3, 2, 6}, {3, 3, 9}
+]
+```
+
+O resultado de um bloco de *comprehension* não precisa ser uma lista. Qualquer *collectable* serve
+(listas, mapas e map sets são exemplos). Para especificar o formato do *collectable*, utiliza-se a
+opção `into`:
+
+```elixir
+multiplication_table =
+    for x <- 1..9, y <- 1..9,
+        into: %{} do
+            {{x, y}, x*y}
+        end
+```
+
+A estrutura de map consegue interpretar a estrutura `{chave, valor}` retornada pelo bloco `do` den-
+tro do `into` e monta um mapa de acordo. Por exemplo, `multiplication_table[{6, 7}]` retorna 42.
+É possível especificar um filtro para quando a *comprehension* deve ser computada. O mesmo deve ser
+descrito após as cláusulas de `for`. Exemplo: `for x <- 1..9, y <- 1..9, x <= y, into: ...`
+
+### Streams
+*Streams* são *enumerables* que facilitam a composição de operações em outros *enumerables*. A van-
+tagem das *streams* sobre as funções do módulo `Enum` é que os resultados são lazy (isto é, não são
+computados até que seja explicitamente necessário, por uma operação eager, como as do `Enum`).
+
+```elixir
+stream = 
+    [2, 4, 6]
+    |> Stream.map(fn x -> 2 * x end)
+    
+eager_list = Enum.to_list(stream)
+```
+
+Pelos elementos serem lazy, é possível computar apenas um deles por vez. Fazendo `Enum.take`, por
+exemplo (não é necessário calcular todos os valores se apenas um é utilizado).
+Streams são bastante úteis para se ler arquivos textuais, por exemplo: é possível se ter em memó-
+ria apenas os elementos úteis, e não todas as linhas do arquivo (onde cada uma ocupa uma posição da
+lista). A função `File.stream!/1` lê um arquivo e retorna o conteúdo de suas linhas numa *stream*.
