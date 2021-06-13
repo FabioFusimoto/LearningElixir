@@ -188,16 +188,6 @@ função não contam como uma *tail-call recursion*, uma vez que o último valor
 tado da expressão e não da função em si. `ListHelpers.sum/1` (da seção de *Conditionals*) é uma 
 ilustração deste caso
 
-TENTAR IMPLEMENTAR AS SEGUINTES FUNÇÕES UTILIZANDO RECURSÃO E PATTERN MATCHING
-- A `list_len/1` function that calculates the length of a list
-- A `range/2` function that takes two integers, from and to, and returns a list of all
-numbers in the given range
-- A `positive/1` function that takes a list and returns another list that contains only
-the positive numbers from the input list
-
-O autor recomenda implementá-las primeiramente como uma recursão normal e depois com uma *tail-
-recursion*.
-
 ### Higher-order functions
 Além da recursão clássica, muitas operações repetitivas podem ser resolvidas com *higher-order
 functions*, que nada mais são do que funções que tomam funções como argumentos. `Enum.each/2` é

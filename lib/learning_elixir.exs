@@ -50,7 +50,3 @@ defmodule BeerSong do
     )
   end
 end
-
-fn x ->
-    x*x
-end
