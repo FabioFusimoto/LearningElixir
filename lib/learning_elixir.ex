@@ -1,3 +1,10 @@
+defmodule LearningElixir do
+  @moduledoc "LearningElixir"
+  def hello_world() do
+    IO.puts("Hello World!")
+  end
+end
+
 defmodule RnaToDna do
   defp convert_nucleotide (nuc) do
     case nuc do
@@ -14,7 +21,7 @@ defmodule RnaToDna do
 end
 
 defmodule WordCount do
-  def count (phrase) do
+  def count(phrase) do
     phrase
     |> String.split()
     |> Enum.frequencies()
@@ -22,7 +29,7 @@ defmodule WordCount do
 end
 
 defmodule BeerSong do
-  defp count_dependent_strings (beers) do
+  defp count_dependent_strings(beers) do
     cond do
       beers > 1 ->
         {"#{beers} bottles", "one"}
@@ -33,7 +40,7 @@ defmodule BeerSong do
     end
   end
 
-  def lyrics (repetitions) do
+  def lyrics(repetitions) do
     Enum.each(
       repetitions..0,
       fn beers ->
