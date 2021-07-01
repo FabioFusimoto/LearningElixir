@@ -33,7 +33,7 @@ defmodule ChapterThree do
   def longest_line!(file) do
     File.stream!(file)
     |> Stream.map(&String.replace(&1, "\n", ""))
-    |> Enum.reduce({"", 1}, &keep_longest_line(&1, &2))
+    |> Enum.reduce({"", 0}, &keep_longest_line(&1, &2))
     |> elem(0)
   end
 end
