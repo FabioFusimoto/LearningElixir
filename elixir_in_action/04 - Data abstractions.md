@@ -80,3 +80,24 @@ inserido. `put_in(todo_list[3].title, "Theater")` e `put_in(todo_list, [3, :titl
 equivalentes.
 
 ## Polymorphism with protocols
+Polimorfismo é uma decisão em runtime de sobre qual código executar, baseado na natureza do input
+de dados. Em elixir, para atender ao polimorfismo, utiliza-se `protocols` (similar ao que se faz
+com interfaces em POO). Para implementar uma função declara num protocolo, utiliza-se o `defimpl`.
+
+```elixir
+defimpl String.Chars, for: Integer do
+    def to_string(term) do
+        Integer.to_string(term)
+    end
+end
+```
+
+A definição do tipo para qual o protocolo está sendo implementado (`Integer`, no exemplo) pode ser
+qualquer primitivo da linguagem: Tuple, Atom, Integer, Float, etc. Pode-se utilizar o "tipo" Any
+como fallback, caso nenhum dos outros tipos tenha um match. Além disso, o tipo pode ser qualquer
+alias arbitrário (o nome de um módulo definido na aplicação, por exemplo). A implementação dos
+protocolos pode ser feita mesmo fora de um módulo: isso significa que se pode definir funções para
+tipos cujo código-fonte nem mesmo está acessível.
+
+O elixir possui uma série de protocols built-in: `String.Chars`, `List.Chars`, `Enumerable`, 
+`Collectable`.
