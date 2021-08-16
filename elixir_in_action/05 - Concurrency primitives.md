@@ -83,7 +83,7 @@ qual o módulo é responsável e é informalmente classificada como uma _impleme
 É importante perceber que _server processes_ são sequenciais. Se 5 ações forem requisitadas ao
 server, elas serão executadas em sequência, não em paralelo. Este tipo de processo é considerado
 como um "ponto de sincronização". Para se lidar com processamento paralelo, pode-se, por exemplo,
-spawnar múltiplos servidores e distribuir a carga de trabalho entre eles (__round-robin_).
+spawnar múltiplos servidores e distribuir a carga de trabalho entre eles (_round-robin_).
 
 ### Keeping a process state
 Uma estrategia para manter um estado é propagá-lo para a próxima execução do `loop` (ou algo
