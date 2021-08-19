@@ -155,3 +155,112 @@ end
 Note que não faz muito sentido a requisição de `:get` ser um cast.
 
 ## Using GenServer
+_GenServers_ suportam as operações que fizemos na unha acima e ainda contam com muitas outras
+funcionalidades:
++ Configuração de timeouts em _casts_
++ Propagação de crashes para clientes esperando respostas
++ Suporte para sistemas distribuídos
+
+### OTP Behaviours
+Em Erlang, um _behaviour_ nada mais é que um código genérico que satisfaz um determinado padrão.
+A lógica genérica é satisfeita por um determinado módulo (_callback module_): tal módulo deve 
+satisfazer o contrato estabelecido pelo _behaviour_, ou seja, implementar um certo conjunto de 
+funções (o `ServerProcess` é um exemplo simples).
+
+O módulo `GenServer` define outro _behaviour_ com 7 funções a serem implementadas (o override é
+necessário para as particularidades da aplicação):
++ `child_spec/1`
++ `code_change/3`
++ `handle_call/3`
++ `handle_cast/2`
++ `handle_info/2`
++ `init/1`
++ `terminate/2`
+
+Reescrevendo o `KeyValueServer` utilizando um `GenServer`:
+
+```elixir
+defmodule KeyValueServer do
+    use GenServer
+    
+    def start do
+        GenServer.start(KeyValueServer, nil)
+    end
+    
+    def put(pid, key, value) do
+        GenServer.cast(pid, {:put, key, value})
+    end
+    
+    def get(pid, key) do
+        GenServer.call(pid, {:get, key})
+    end
+    
+    def init(_) do
+        {:ok, %{}}
+    end
+    
+    def handle_cast({:put, key, value}, state) do
+        {:noreply, Map.put(state, key, value)}
+    end
+    
+    def handle_call({:get, key}, _, state) do
+        {:reply, Map.get(state, key), state}
+    end
+end
+```
+
+Alguns pontos de atenção: 
++ A função `start/0` funciona sincronamente, isto é, o cliente ficará em
+estado de espera até o término da exceução de `init/1`
++ `GenServer.call/2` possui um timeout padrão de 5 segundos. Isso pode ser configurado utilizando
+outra aridade -> `GetServer.call(pid, request, timeout)`
+
+O formato das mensagens internas do `GenServer` é bastante particular e quando uma de outro tipo
+precisa ser enviada / recebida, utiliza-se o `handle_info/2` que não se utiliza desse mesmo 
+tratamento.
+
+```elixir
+defmodule KeyValueServer do
+    use GenServer
+    
+    def init(_) do
+        :timer.send_interval(5000, :cleanup)
+    end
+    
+    ...
+    
+    def handle_info(:cleanup, state) do
+        IO.puts("Performing some cleanup...")
+        {:noreply, state}
+    end
+end
+```
+
+Para ajudar a não esquecer de implementar uma função definida por um _behaviour_, é possível dar uma
+"dica" ao compilador através de atributo `@impl` do módulo que se está desenvolvendo. Isso indica ao
+compilador que aquele módulo implementa um `GenServer`:
+
+```elixir
+defmodule EchoServer do
+    use GenServer
+    
+    @impl GenServer
+    
+    ...
+end
+```
+
+É possível registrar nomes de `GenServer`s da mesma forma que com processos através da seguinte
+sintaxe: `GenServer.start(CallbackModule, init_params, name: :an_atom_as_name)`. E para acessar pelo
+nome dado: `GenServer.call(:name, ...)` ou `GenServer.cast(:name, ...)`. Módulos são atoms também,
+logo servem como nomes também. O nome do módulo também pode ser substituido por `__MODULE__`.
+
+### Stopping the server
+Há várias maneiras de se fazer isso:
++ No `init/1`, pode-se retornar `{:stop, reason}` para indicar uma parada com falha ou `:ignore` no
+caso de uma parada esperada
++ Nas chamadas de `handle_*`, pode-se retornar `{:stop, reason, new_state}`. Caso seja necessário
+responde ao cliente antse de parar, usa-se `{:stop, reason, response, new_state}`
++ Pode-se também chamar `GenServer.stop/3`
+
+O `new_state` fomenta a execução da função `terminate/2`, que ocorre assim que um processo para
